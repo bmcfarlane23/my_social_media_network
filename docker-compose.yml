@@ -1,0 +1,56 @@
+version: "3.9"  # Docker Compose version
+
+services:
+  web:
+    build: ./social_media_app  # Build context points to social_media_app folder
+    command: python wsgi.py  # Command to run the Flask application
+    # volumes:
+    #   - app-data:/usr/src/app  # Mount named volume to container directory
+    ports:
+      - "5000:5000"  # Map container port 5000 to host port 5000
+    environment:
+      - FLASK_APP=wsgi.py  # Set the Flask application entry point
+      - FLASK_ENV=development  # Set environment to development
+      - SECRET_KEY=${SECRET_KEY}  # Secret key for Flask app, fetched from .env file
+      - DB_NAME=${DB_NAME}  # Database name, fetched from .env file
+      - DB_USER=${DB_USER}  # Database user, fetched from .env file
+      - DB_PASSWORD=${DB_PASSWORD}  # Database password, fetched from .env file
+      - DB_HOST=pg  # Database host, fetched from .env file
+      - DB_PORT=${DB_PORT}  # Database port, fetched from .env file
+      - DATABASE_URL=postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@pg:${DB_PORT}/${DB_NAME}  # Database URL for SQLAlchemy, constructed from environment variables
+    depends_on:
+      - pg  # Depend on the pg service (PostgreSQL)
+
+  pg:
+    container_name: pg  # Name of the PostgreSQL container
+    image: postgres:13.2-alpine  # PostgreSQL Docker image version
+    restart: always  # Always restart container on failure
+    environment:
+      POSTGRES_USER: ${DB_USER}  # PostgreSQL username, fetched from .env file
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # PostgreSQL password, fetched from .env file
+      POSTGRES_DB: ${DB_NAME}  # PostgreSQL database name, fetched from .env file
+      POSTGRES_HOST_AUTH_METHOD: trust  # Trust all connections (insecure, for local development)
+    ports:
+      - "${DB_PORT}:${DB_PORT}"  # Map container port to host port, fetched from .env file
+    volumes:
+      - pg-data:/var/lib/postgresql/data  # Mount named volume to container's data directory
+      - ./data/misc/flask_init.sql:/docker-entrypoint-initdb.d/1-flask-init.sql  # Run SQL script to initialize the database
+
+  pgadmin:
+    container_name: pgadmin_container  # Name of the pgAdmin container
+    image: dpage/pgadmin4:5.2  # pgAdmin Docker image version
+    restart: always  # Always restart container on failure
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}  # Default email for pgAdmin login, fetched from .env file
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}  # Default password for pgAdmin login, fetched from .env file
+      PGADMIN_LISTEN_PORT: 5433  # pgAdmin web interface port
+      PGADMIN_CONFIG_SERVER_MODE: "False"  # Disable server mode (single user mode)
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"  # Disable master password requirement
+    ports:
+      - "5433:5433"  # Map container port 5433 to host port 5433
+    depends_on:
+      - pg  # Depend on the pg service (PostgreSQL)
+
+volumes:
+  # app-data:
+  pg-data:
