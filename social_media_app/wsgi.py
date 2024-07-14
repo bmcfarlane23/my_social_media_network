@@ -3,12 +3,12 @@
 from src import create_app
 import os
 
-# Print or log connection parameters
-print("DB_HOST:", os.getenv('DB_HOST'))
-print("DB_PORT:", os.getenv('DB_PORT'))
-print("DB_USER:", os.getenv('DB_USER'))
-print("DB_PASSWORD:", os.getenv('DB_PASSWORD'))
-print("DB_NAME:", os.getenv('DB_NAME'))
+# # Print or log connection parameters
+# print("DB_HOST:", os.getenv('DB_HOST'))
+# print("DB_PORT:", os.getenv('DB_PORT'))
+# print("DB_USER:", os.getenv('DB_USER'))
+# print("DB_PASSWORD:", os.getenv('DB_PASSWORD'))
+# print("DB_NAME:", os.getenv('DB_NAME'))
 
 # Create the Flask app
 app = create_app()
